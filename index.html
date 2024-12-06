@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>A-Frame Baseball</title>
+  <meta name="description" content="A-Frame Baseball Field" />
+  <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+  <script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v4.0.1/dist/aframe-physics-system.min.js"></script>
+  <script src="https://unpkg.com/aframe-event-set-component@4.2.1/dist/aframe-event-set-component.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+  <script src="https://unpkg.com/super-hands@^3.0.3/dist/super-hands.min.js"></script>
+  <script src="js/aframe-environment-component.js"></script>
+  <script src="js/controller-listener.js"></script>
+  <script src="js/player-move.js"></script>
+  <script src="js/raycaster-extras.js"></script>
+  <script src="js/aframe-scripts.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+</head>
+
+<body>
+  <a-scene physics="restitution:1 ; gravity: -9.8; debug:false" renderer="antialias: true">
+    <a-assets>
+      <a-assets-item id="lapangan" src="model/lapangan/untitled.gltf"></a-assets-item>
+      <a-assets-item id="bola" src="model/bola/bola.gltf"></a-assets-item>
+      <a-assets-item id="bat" src="model/bat/untitled.gltf"></a-assets-item>
+      <a-assets-item id="launcher" src="model/launch/ARVRs2.gltf"></a-assets-item>
+
+      <audio id="batSound" src="audio dan gambar/Bat Hits.mp3"></audio>
+      <img id="banner" src="audio dan gambar/banner.png">
+      <img id="hdr" src="audio dan gambar/hdr.jpg">
+      <audio id="lagu" src="audio dan gambar/mars mmk.mp3"></audio>
+      <audio id="batSound" src="audio dan gambar/Bat Hits.mp3"></audio>
+      <audio id="click-sound" src="https://cdn.aframe.io/360-image-gallery-boilerplate/audio/click.ogg"></audio>
+    </a-assets>
+
+    <!-- Sky and Environment dan lagu -->
+    <a-sky src="#hdr"></a-sky>
+
+    <!-- Display Score -->
+    <a-text id="score-display" value="Score: 0" position="-48 2.3 40" color="#FFF" allign="center" scale="2 2 2"></a-text>
+
+    <!-- Player Setup -->
+    <a-entity id="player" position="-50 1 44"
+      player-move="controllerListenerId: #controller-data; navigationMeshClass: environmentGround;">
+      <a-camera>
+        <a-entity id="myGBcursor" cursor="fuse: true; fuseTimeout: 1000" position="0 0 -1"
+          geometry="primitive: sphere; radius: 0.005" material="color: #000000; shader: flat"
+          raycaster="objects: .clickable"
+          animation__mouseenter="property: scale; to: 3 3 3; dur: 1000; startEvents: mouseenter"
+          animation__mouseleave="property: scale; to: 1 1 1; dur: 1000; startEvents: mouseenter; delay: 1000">
+        </a-entity>
+      </a-camera>
+      <a-entity id="controller-data"
+        controller-listener="leftControllerId: #left-controller; rightControllerId: #right-controller;"></a-entity>
+      <!-- Left Controller -->
+      <a-entity super-hands id="left-controller" hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
+        sphere-collider="objects: .throwable" static-body="shape: sphere; sphereRadius: 0.02;" grab
+        position="0 1.5 -1"></a-entity>
+      <!-- Right Controller -->
+      <a-entity super-hands id="right-controller" hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
+        sphere-collider="objects: .raycaster-target, .throwable" static-body="shape: sphere; sphereRadius: 0.02;" grab
+        position="0 1.5 -1" raycaster="objects: .raycaster-target; showLine: true" line="color: #fff"></a-entity>
+    </a-entity>
+
+    <!-- Baseball Field -->
+    <a-entity gltf-model="#lapangan" rotation="0 0 0" position="0 -2.5 0" shadow="receive: true"></a-entity>
+
+    <!-- Launcher bola -->
+    <a-entity gltf-model="#launcher" rotation="0 0 0" scale="0.5 0.5 0.5" position="-50.5 1 19"
+    shadow="receive: true"></a-entity>
+
+    <!-- Ground for Physics -->
+    <a-box static-body class="environmentGround" rotation="-90 0 0" position="-50 0 44" width="200" height="200"
+      depth="1" material="opacity: 0; transparent: true"></a-box>
+
+    <!-- Tombol Ball Spawner -->
+    <a-sphere id="spawnerButton" class="clickable" sound="on: click; src: #click-sound" position="-48 1.6 40"
+      radius="0.3" color="#AA0000" class="raycaster-target"
+      event-set__enter="_event: mouseenter; material.color: #FF0000; scale: 1.1 1.1 1.1"
+      event-set__leave="_event: mouseleave; material.color: #AA0000; scale: 1 1 1" bolagenerator refresh-obj>
+
+      <a-plane color="#000000" height="0.7" width="1" opacity="0.5" position="1 0 0" side="double" material="" geometry="" rotation="0 0 0">
+        <a-text value="Mulai!!!\nSpawn bola" color="#FFFFFF" width="3" position="-0.35 0 0" rotation="0 0 0" text=""></a-text>
+      </a-plane>
+
+    </a-sphere>
+
+    <!--Tombol Tongkat Spawner -->
+    <a-sphere id="tongkatButton" class="clickable" sound="on: click; src: #click-sound" position="-53 1.6 40"
+      radius="0.3" color="#0000AA" class="raycaster-target"
+      event-set__enter="_event: mouseenter; material.color: #0000FF; scale: 1.1 1.1 1.1"
+      event-set__leave="_event: mouseleave; material.color: #0000AA; scale: 1 1 1" tongkatgenerator>
+
+      <a-plane color="#000000" height="0.7" width="1" opacity="0.5" position="-1 0 0" side="double" material="" geometry="" rotation="0 0 0">
+        <a-text value="Spawn\nTongkat" color="#FFFFFF" width="3" position="-0.3 0 0" rotation="0 0 0" text=""></a-text>
+      </a-plane>
+    </a-sphere>
+
+    <!--Tombol Hapus bola dan bat-->
+    <a-sphere id="hapusButton" class="clickable" sound="on: click; src: #click-sound" position="-54 2.6 44" radius="0.26"
+      color="#FF00FF" class="raycaster-target"
+      event-set__enter="_event: mouseenter; material.color: #FF55FF; scale: 1.1 1.1 1.1"
+      event-set__leave="_event: mouseleave; material.color: #FF00FF; scale: 1 1 1" hapus-semua>
+      <a-plane color="#000000" height="0.7" width="1" opacity="0.5" position="0.55 -1 0" side="double" material="" geometry="" rotation="0 90 0">
+        <a-text value="Reset" color="#FFFFFF" width="3" position="-0.20 0 0" rotation="0 0 0" text=""></a-text>
+      </a-plane>
+
+    </a-sphere>
+
+
+    <!--Play stop lagu-->
+    <a-box id="yellow" color="#FFAA00" position="-54 1.6 46" sound="src: #lagu; autoplay: false; loop: true; positional: false" rotation="0 -90 0">
+      <!-- Tombol Play -->
+      <a-sphere
+        class="clickable"
+        class="raycaster-target"
+        sound="on: click; src: #click-sound"
+        color="#00AA00"
+        radius="0.25"
+        position="-0.5 1 0"
+        play>
+      </a-sphere>
+      <!-- Tombol Stop -->
+      <a-sphere
+        class="clickable"
+        class="raycaster-target"
+        sound="on: click; src: #click-sound"
+        color="#AA0000"
+        radius="0.25"
+        position="0.5 1 0"
+        stop>
+      </a-sphere>
+
+      <a-plane color="#000000" height="0.7" width="1" opacity="0.5" position="0 0 -0.55" side="double">
+        <a-text value="On/Off\n Musik" color="#FFFFFF" width="3" position="0.2 0 0" rotation="0 180 0"></a-text>
+      </a-plane>      
+    </a-box>
+
+        <!-- Tembok static - Revisi harus ganti sama beberapa segmen box aja dengan depth 1
+         <a-cylinder position="-51 5.5 5"
+                    color="grey"
+                    visible="true"
+                    radius="80"
+                    height="11"
+                    segments-radial="32"
+                    open-ended="true"
+                    side="double"
+                    static-body>
+         </a-cylinder>-->
+
+    <!-- Banner kiri -->
+    <a-plane position="-90 6 -61" rotation="0 20 0" material="src: #banner" raycaster-target="glowOnHover: false"
+      width="2" depth="2" scale="15 15 1">
+    </a-plane>
+
+    <!-- Banner kanan -->
+    <a-plane position="-12.8489 6 -61" rotation="0 -20 0" material="src: #banner" raycaster-target="glowOnHover: false"
+      width="2" depth="2" scale="15 15 1">
+    </a-plane>
+
+    <!-- Credit belakang -->
+    <a-entity position="-50 2 78" rotation="0 180 0">
+      <!-- Background kotak hitam -->
+      <a-plane color="#000000" height="4.6" width="4" opacity="0.5" position="1.3 -0.6 0">
+      </a-plane>
+      <!-- Teks Credit -->
+      <a-text value="Kelompok 1 TRM A angkatan 2023\n
+          Muhammad Dias Al Izzat - NRP : 5323600006\n
+          Muhammad Dimas Fajar Ramadhani - NRP : 5323600009\n
+          Moh. Satria Halim Wicaksana - NRP : 5323600010\n
+          Hanan Hafizhah Zarkasi - NRP : 5323600015\n
+          Keiko Hana Sheika - NRP : 5323600020\n
+          Armany Rizqullah Saputra - NRP : 5323600029\n
+          \n
+          Politeknik Elektronika Negeri Surabaya - 25/11/2024" color="#FFFFFF" width="3" position="0 0 0"></a-text>
+    </a-entity>
+
+
+    <!-- Jumbotron -->
+    <a-plane camera-fun="" id="box" position="-51.0064 21.507 -72" material="shader: flat; src: [object Object]"
+      raycaster-target="glowOnHover: false" geometry="" width="2" depth="2" scale="15 15 1">
+    </a-plane>
+
+    <a-light type="directional" position="-50 4 12" intensity="2" color="orange"></a-light>
+    <a-light type="ambient" color="#ffffff" intensity="0.5"></a-light>
+</body>
+
+</html>
